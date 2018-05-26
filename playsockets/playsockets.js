@@ -1,6 +1,6 @@
 var io;
 var app;
-
+var switchStates = {};
 module.exports = {
     start: function(app) {
         var app = require('http').createServer()
@@ -11,10 +11,19 @@ module.exports = {
 
         io.on('connection', function (socket) {
             console.log("connected");
-            socket.emit('news', { hello: 'world' });
-            socket.on('my other event', function (data) {
-                console.log(data);
+
+  
+            socket.join('switchRoom');
+            socket.on('switch', function (data) {
+                newState = JSON.parse(data);
+                stateData = JSON.parse(newState.p);
+                switchStates[stateData.id] = data;
+                io.to('switchRoom').emit('switch', data);
             });
+            var switches = Object.keys(switchStates);
+            for (var i = 0; i < switches.length; i++) {
+                socket.emit('switch', switchStates[switches[i]]);
+            }
         });
     }
   };
